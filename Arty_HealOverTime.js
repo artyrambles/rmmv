@@ -217,9 +217,9 @@ Scene_Map.prototype.update = function() {
 				aActorMHP = aActor.mhp;
 				if (aActorHP == aActorMHP)
 				{
-					if (!remove)
+					if (remove)
 					{
-						aActor.removeState(stateId);
+						aActor.removeState(parseInt(stateId));
 					} else {
 						$dataStates[parseInt(stateId)].lastTriggered = null;
 					}
@@ -269,10 +269,10 @@ Scene_Map.prototype.update = function() {
  * @default 10%
  *
  * @param Persistent
- * @desc Will the state be removed after the actor was healed fully?
+ * @desc Will the state stay after the actor was healed fully?
  * @type boolean
  * @on yes
  * @off no
- * @default true
+ * @default false
  */
   
