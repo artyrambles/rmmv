@@ -1,6 +1,9 @@
 # Arty's RMMV Plugins
 Here you can find all my released plugins. They have been tested with v1.6.2 of RPG Maker MV and may not work on older versions.
 
+## TERMS
+My plugins are free to use for commercial and non-commercial projects, **as long as you give credit**. This "credit" has to include my name (Arty) and the names of the plugins you used.
+
 ### Arty_HealOverTime.js
 *REQUIRES Yanfly's Buffs and States Core plugin!*
 
