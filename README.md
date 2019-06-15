@@ -12,3 +12,6 @@ In the plugin parameters, you set up a list of your healing states, and for each
 - if the state is removed once the actor is fully healed
 
 There is also an optional functionality to show a popup everytime the healing happens. (Requires Mr. Trivel's popups plugin.)
+
+### Arty_PostBattleCommonEvent.js
+This plugin lets you define a Common Event that will be run once the battle is over for every outcome of a battle - defeat, victory, escape/abort. You can also define a common event that runs after every battle, no matter the outcome.
