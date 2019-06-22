@@ -2,7 +2,7 @@
 // Arty's Heal Over Time
 // by Artyrambles
 // Date: 08/06/2019  
-// Last Update: 14/06/2019
+// Last Update: 22/06/2019
 //=============================================================================
 
 var Arty = Arty || {};
@@ -15,7 +15,7 @@ if(!Imported.YEP_BuffsStatesCore) {
 }
 
 /*:
- * @plugindesc v2.01 Heal your actors over time on the map. 
+ * @plugindesc v2.1 Heal your actors over time on the map. 
  * @author Arty  
  *
  * @param ----STATES SETTINGS----
@@ -31,10 +31,15 @@ if(!Imported.YEP_BuffsStatesCore) {
  * @type boolean
  * @default false
  *
- * @param Icon
+ * @param HP Icon
  * @desc (For popups.) The icon ID if you want the popup.
  * @type number
  * @default 84
+ *
+ * @param MP Icon
+ * @desc (For popups.) The icon ID if you want the popup.
+ * @type number
+ * @default 67
  *
  * @param Verbose Popups
  * @desc (For popups.) Display actor name in popup?
@@ -46,7 +51,7 @@ if(!Imported.YEP_BuffsStatesCore) {
  *
  * @help 
  * ----------------------------------------------------------------------------
- *   Heal Over Time v2.01 by Arty
+ *   Heal Over Time v2.1 by Arty
  *   Free for both commercial and non-commercial use, with credit.
  * ----------------------------------------------------------------------------
  * 	WHAT IT DOES
@@ -137,6 +142,7 @@ if(!Imported.YEP_BuffsStatesCore) {
 			$dataStates[i].healing = null;
 			$dataStates[i].triggerInterval = null;
 			$dataStates[i].remove = true;
+			$dataStates[i].hpmp = true;
 		}
 	}
 	
@@ -148,6 +154,7 @@ if(!Imported.YEP_BuffsStatesCore) {
 			state = JSON.parse(statesParsed[i]);
 			databaseState = $dataStates[state["State"]];
 			databaseState.healing = state["Healing"];
+			databaseState.hpmp = state["Type"];
 			databaseState.triggerInterval = state["Interval"];
 			databaseState.remove = state["Persistent"];
 			Arty.definedStates.push(state["State"]);
@@ -206,40 +213,70 @@ Scene_Map.prototype.update = function() {
 	
   
 	function Arty_checkAll(stateId, healing, percentage, remove) {
+		stateId = parseInt(stateId);
+		aState = $dataStates[stateId];
+		switch (aState.hpmp)
+		{
+			case "HP":
+				hpmp = true;
+				break;
+			case "MP":
+				hpmp = false;
+				break;
+		}
+		console.log(hpmp);
 		membersCount = 0;
 		for (i = 0; i < $gameParty.size(); i++)
 		{
 			aActor = $gameParty.members()[i];
-			if (aActor.isStateAffected(parseInt(stateId)))
+			if (aActor.isStateAffected(stateId))
 			{
 				membersCount++;
-				aActorHP = aActor.hp;
-				aActorMHP = aActor.mhp;
+				if (hpmp)
+				{
+					aActorHP = aActor.hp;
+					aActorMHP = aActor.mhp;
+				} else {
+					aActorHP = aActor.mp;
+					aActorMHP = aActor.mmp;
+				}
 				if (aActorHP == aActorMHP)
 				{
 					if (remove)
 					{
-						aActor.removeState(parseInt(stateId));
+						aActor.removeState(stateId);
 					} else {
-						$dataStates[parseInt(stateId)].lastTriggered = null;
+						$dataStates[stateId].lastTriggered = null;
 					}
 				} else {
 					if (percentage)
 					{
 						healing = parseInt(healing)*0.01;
-						gains = aActor.mhp*healing;
+						gains = aActorMHP*healing;
 					} else {
 						gains = parseInt(healing);
 					}
-					aActor.gainHp(gains);
-					$dataStates[parseInt(stateId)].lastTriggered = Graphics.frameCount;
+					if (hpmp)
+					{
+						aActor.gainHp(gains);
+					} else {
+						aActor.gainMp(gains);
+					}
+					$dataStates[stateId].lastTriggered = Graphics.frameCount;
 					if (Arty.parameters["Popups"])
 					{
+						if (hpmp)
+						{
+							icon = Arty.parameters["HP Icon"];
+						} else {
+							icon = Arty.parameters["MP Icon"];
+						}
+						
 						if (Arty.parameters["Verbose Popups"])
 						{
-							$gameSystem.createPopup(Arty.parameters["Icon"], "right", aActor.name()+" gains "+gains.toString()+" ");
+							$gameSystem.createPopup(icon, "right", aActor.name()+" gains "+gains.toString()+" ");
 						}else {
-							$gameSystem.createPopup(Arty.parameters["Icon"], "right", "+"+gains.toString()+" ");
+							$gameSystem.createPopup(icon, "right", "+"+gains.toString()+" ");
 						}
 					}
 				}
@@ -262,6 +299,15 @@ Scene_Map.prototype.update = function() {
  * @desc How many frames pass until the healing repeats?
  * @type number
  * @default 420
+ *
+ * @param Type
+ * @desc HP or MP?
+ * @type select
+ * @option HP
+ * @value HP
+ * @option MP
+ * @value MP
+ * @default HP
  *
  * @param Healing
  * @desc How much HP is restored? Put a % after the number for percentages. Do NOT put formulas. Example: 20 or 20%
