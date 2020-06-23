@@ -1,22 +1,23 @@
 //=============================================================================
 // Arty's Heal Over Time
 // by Artyrambles
-// Date: 08/06/2019  
-// Last Update: 22/06/2019
+// Date: 08/06/2019
+// Last Update: 23/06/2020
 //=============================================================================
-
-var Arty = Arty || {};
 
 var Imported = Imported || {};
 Imported.Arty_HealOverTime = true;
+
+var Arty = Arty || {};
+Arty.HOT = Arty.HOT || {};
 
 if(!Imported.YEP_BuffsStatesCore) {
 	alert("Arty's Heal Over Time plugin has detected an issue: This plugin requires Yanfly's Buffs and States Core to work! Please go install it.");
 }
 
 /*:
- * @plugindesc v2.1 Heal your actors over time on the map. 
- * @author Arty  
+ * @plugindesc v2.2 Heal your actors over time on the map.
+ * @author Arty
  *
  * @param ----STATES SETTINGS----
  *
@@ -49,9 +50,9 @@ if(!Imported.YEP_BuffsStatesCore) {
  * @default false
  *
  *
- * @help 
+ * @help
  * ----------------------------------------------------------------------------
- *   Heal Over Time v2.1 by Arty
+ *   Heal Over Time v2.2 by Arty
  *   Free for both commercial and non-commercial use, with credit.
  * ----------------------------------------------------------------------------
  * 	WHAT IT DOES
@@ -62,8 +63,8 @@ if(!Imported.YEP_BuffsStatesCore) {
  * specified state(s) applied at the moment. When they are fully healed,
  * it's possible to remove the state or have it remain.
  *
- * Note: Once the party member is fully healed, the persistent state will 
- * not do anything on its own anymore, even if it isn't removed. I don't 
+ * Note: Once the party member is fully healed, the persistent state will
+ * not do anything on its own anymore, even if it isn't removed. I don't
  * really know what to do about that, so suggestions are welcome.
  * ----------------------------------------------------------------------------
  * 	DEPENDENCIES
@@ -76,26 +77,28 @@ if(!Imported.YEP_BuffsStatesCore) {
  * ----------------------------------------------------------------------------
  *
  * 	STATE SETUP
- * This plugin assumes you have one or more "healing" states. Just create a 
+ * This plugin assumes you have one or more "healing" states. Just create a
  * State in your database that does nothing.
  * You can create multiple states like this.
  * How the state is applied to the actors is up to you. You could make a skill
  * or apply it through other means.
  * IMPORTANT:
- * This plugin will not do anything unless you add this to the state's
- * notebox:
+ * This plugin will not do anything unless you add this to the state's notebox:
  * <Custom Apply Effect>
- *  Arty_applyState(stateId);
+ *  Arty.applyState(stateId, user);
  * </Custom Apply Effect>
  * If you already have a Custom Apply Effect defined, do it like this:
  * <Custom Apply Effect>
  *  your code
  *  your code
- *  Arty_applyState(stateId);
+ *  Arty.applyState(stateId, user);
  * </Custom Apply Effect>
+ * YOU DON'T NEED TO CHANGE ANYTHING IN THIS SCRIPT CALL! Don't replace the
+ * "stateId" or "user" with anything! It's supposed to be used exactly like
+ * this or stuff will break.
  *
  *	PLUGIN PARAMETERS
- * If you want to use popups, you have to install this: 
+ * If you want to use popups, you have to install this:
  *   https://github.com/Trivel/RMMV/blob/master/MrTS_PopUp.js
  * Then set the "Popups" plugin parameter to ON (true).
  * Then set the "Icon" plugin parameter to the ID of the icon you want to
@@ -115,26 +118,27 @@ if(!Imported.YEP_BuffsStatesCore) {
  * This plugin does not have any plugin commands.
  * ----------------------------------------------------------------------------
  *
- * If something doesn't work, please let me know via arty.rambles@gmail.com
+ * If something doesn't work, please let me know via
+ * arty.rambles (at) gmail.com
  */
- 
+
  // set up parameters
- Arty.parameters = PluginManager.parameters('Arty_HealOverTime');
- Arty.definedStates = [];
- 
+ Arty.HOT.parameters = PluginManager.parameters('Arty_HealOverTime');
+ Arty.HOT.definedStates = [];
+
  // "improve" the states
- Arty_DataManager_IsDatabaseLoaded = DataManager.isDatabaseLoaded;
+ Arty.HOT.DataManager_IsDatabaseLoaded = DataManager.isDatabaseLoaded;
 	DataManager.isDatabaseLoaded = function () {
-		if (!Arty_DataManager_IsDatabaseLoaded.call(this)) return false;
-		if (!Arty._loaded_HealingStates) {
-			Arty_addProperties();
-			Arty_addParameterContents();
-			Arty._loaded_HealingStates = true;
+		if (!Arty.HOT.DataManager_IsDatabaseLoaded.call(this)) return false;
+		if (!Arty.HOT._loaded_HealingStates) {
+			Arty.HOT.addProperties();
+			Arty.HOT.addParameterContents();
+			Arty.HOT._loaded_HealingStates = true;
 		}
     return true;
 	}
-	
-	function Arty_addProperties()
+
+	Arty.HOT.addProperties = function()
 	{
 		for (i = 1; i < $dataStates.length;i++)
 		{
@@ -145,11 +149,17 @@ if(!Imported.YEP_BuffsStatesCore) {
 			$dataStates[i].hpmp = true;
 		}
 	}
-	
-	function Arty_addParameterContents() {
-		currentState = Arty.parameters['States Setup'];
+
+	Arty.HOT.GameActor_setup = Game_Actor.prototype.setup;
+	Game_Actor.prototype.setup = function(actorId) {
+		this.healingStates = [];
+		Arty.HOT.GameActor_setup.call(this, actorId);
+	}
+
+	Arty.HOT.addParameterContents = function() {
+		currentState = Arty.HOT.parameters['States Setup'];
 		statesParsed = JSON.parse(currentState);
-		for (i = 0; i < statesParsed.length; i++) 
+		for (i = 0; i < statesParsed.length; i++)
 		{
 			state = JSON.parse(statesParsed[i]);
 			databaseState = $dataStates[state["State"]];
@@ -157,41 +167,132 @@ if(!Imported.YEP_BuffsStatesCore) {
 			databaseState.hpmp = state["Type"];
 			databaseState.triggerInterval = state["Interval"];
 			databaseState.remove = state["Persistent"];
-			Arty.definedStates.push(state["State"]);
+			Arty.HOT.definedStates.push(state["State"]);
 		}
 	}
-	
-	function Arty_applyState(stateId) {
-		$dataStates[stateId].lastTriggered = Graphics.frameCount;
-	}
-	
-// now hijack the map updating	
 
-Arty.Scene_Map_update = Scene_Map.prototype.update;
-Scene_Map.prototype.update = function() {
-	for (i = 0; i < Arty.definedStates.length; i++)
-	{
-		currentId = Arty.definedStates[i];
-		if ($dataStates[currentId].lastTriggered != null)
-		{
-			triggerInterval = $dataStates[currentId].triggerInterval;
-			healing = $dataStates[currentId].healing;
-			lastTriggered = $dataStates[currentId].lastTriggered;
-			remove = $dataStates[currentId].remove;
-			currentFrameCount = Graphics.frameCount;
-			if ((currentFrameCount - lastTriggered) > triggerInterval)
+ Arty.applyState = function (stateId, actor) {
+		// add the lastTriggered to the actor here...
+		var match = false;
+		actor.healingStates.forEach(function(hState){
+			// hState[0] contains the stateId
+ 			if (hState[0] == stateId)
 			{
-				// do the thing!
-				percentage = Arty_checkPercentage(healing);
-				Arty_checkAll(currentId, healing, percentage, remove);
+				match = true;
+				// this replaces the lastTriggered
+				hState[1] = Graphics.frameCount;
 			}
+		});
+		// the actor isn't affected by the state yet
+		if (!match)
+		{
+			var newState = [stateId, Graphics.frameCount];
+			actor.healingStates.push(newState);
 		}
+	}
+
+// now hijack the map updating
+
+Arty.HOT.Scene_Map_update = Scene_Map.prototype.update;
+Scene_Map.prototype.update = function() {
+	for (i = 0; i < Arty.HOT.definedStates.length; i++)
+	{
+		currentId = Arty.HOT.definedStates[i];
+		triggerInterval = $dataStates[currentId].triggerInterval;
+		currentFrameCount = Graphics.frameCount;
+		// do this for every party member
+		$gameParty.members().forEach(function(m){
+			if (m == undefined) return;
+			// check every registered healing state!
+			for (var i = 0; i < m.healingStates.length; i++)
+			{
+				if (m.healingStates[i][0] == currentId && ((currentFrameCount - m.healingStates[i][1]) > triggerInterval))
+				{
+					remove = $dataStates[currentId].remove;
+					healing = $dataStates[currentId].healing;
+					percentage = Arty.HOT.checkPercentage(healing);
+
+					// do the thing.
+					stateId = parseInt(currentId);
+					aState = $dataStates[stateId];
+					switch (aState.hpmp)
+					{
+						case "HP":
+							hpmp = true;
+							break;
+						case "MP":
+							hpmp = false;
+							break;
+					}
+					if (hpmp)
+					{
+						aActorHP = m.hp;
+						aActorMHP = m.mhp;
+					} else {
+						aActorHP = m.mp;
+						aActorMHP = m.mmp;
+					}
+
+					// check if actor has full hp/mp, if yes, then check if remove state
+					if (aActorHP == aActorMHP)
+					{
+						if (remove)
+						{
+							m.removeState(stateId);
+							// remove it from the array too
+							m.healingStates.splice(i,1);
+						} else {
+							m.healingStates[i][1] = null;
+						}
+
+					// actor HP/MP isn't full. heal
+					} else {
+						if (percentage)
+						{
+							healing = parseInt(healing)*0.01;
+							gains = aActorMHP*healing;
+						} else {
+							gains = parseInt(healing);
+						}
+						gains = Math.ceil(gains);
+						if (hpmp)
+						{
+							m.gainHp(gains);
+						} else {
+							m.gainMp(gains);
+						}
+						// set last healing time
+						m.healingStates[i][1] = Graphics.frameCount;
+
+						// show popup if desired
+						if (Arty.HOT.parameters["Popups"] == "true")
+						{
+							if (hpmp)
+							{
+								icon = Arty.HOT.parameters["HP Icon"];
+							} else {
+								icon = Arty.HOT.parameters["MP Icon"];
+							}
+
+							if (Arty.HOT.parameters["Verbose Popups"] == "true")
+							{
+								$gameSystem.createPopup(icon, "right", m.name()+" gains "+gains.toString()+" ");
+
+							} else {
+								$gameSystem.createPopup(icon, "right", "+"+gains.toString()+" ");
+							}
+						}
+
+					}
+				}
+			}
+		});
 	}
     // call the old update
-	Arty.Scene_Map_update.call(this);
+	Arty.HOT.Scene_Map_update.call(this);
 };
-	
-	function Arty_checkPercentage(healing)
+
+	Arty.HOT.checkPercentage = function(healing)
 	{
 		healingRaw = String(healing);
 		numberPattern = /(\d*)%/i;
@@ -207,85 +308,8 @@ Scene_Map.prototype.update = function() {
 			// it's a flat number...
 			healing = healingRaw;
 		}
-		
+
 		return percentage;
-	}
-	
-  
-	function Arty_checkAll(stateId, healing, percentage, remove) {
-		stateId = parseInt(stateId);
-		aState = $dataStates[stateId];
-		switch (aState.hpmp)
-		{
-			case "HP":
-				hpmp = true;
-				break;
-			case "MP":
-				hpmp = false;
-				break;
-		}
-		console.log(hpmp);
-		membersCount = 0;
-		for (i = 0; i < $gameParty.size(); i++)
-		{
-			aActor = $gameParty.members()[i];
-			if (aActor.isStateAffected(stateId))
-			{
-				membersCount++;
-				if (hpmp)
-				{
-					aActorHP = aActor.hp;
-					aActorMHP = aActor.mhp;
-				} else {
-					aActorHP = aActor.mp;
-					aActorMHP = aActor.mmp;
-				}
-				if (aActorHP == aActorMHP)
-				{
-					if (remove)
-					{
-						aActor.removeState(stateId);
-					} else {
-						$dataStates[stateId].lastTriggered = null;
-					}
-				} else {
-					if (percentage)
-					{
-						healing = parseInt(healing)*0.01;
-						gains = aActorMHP*healing;
-					} else {
-						gains = parseInt(healing);
-					}
-					if (hpmp)
-					{
-						aActor.gainHp(gains);
-					} else {
-						aActor.gainMp(gains);
-					}
-					$dataStates[stateId].lastTriggered = Graphics.frameCount;
-					if (Arty.parameters["Popups"])
-					{
-						if (hpmp)
-						{
-							icon = Arty.parameters["HP Icon"];
-						} else {
-							icon = Arty.parameters["MP Icon"];
-						}
-						
-						if (Arty.parameters["Verbose Popups"])
-						{
-							$gameSystem.createPopup(icon, "right", aActor.name()+" gains "+gains.toString()+" ");
-						}else {
-							$gameSystem.createPopup(icon, "right", "+"+gains.toString()+" ");
-						}
-					}
-				}
-			}
-		}
-		if (membersCount == 0)
-		{
-			$dataStates[stateId].lastTriggered = null;
-		}
 	}
 
 
@@ -321,4 +345,3 @@ Scene_Map.prototype.update = function() {
  * @off no
  * @default false
  */
-  
