@@ -16,10 +16,26 @@ In the plugin parameters, you set up a list of your healing states, and for each
 
 There is also an optional functionality to show a popup everytime the healing happens. (Requires Mr. Trivel's popups plugin.)
 
-### Arty_PostBattleCommonEvent.js
-This plugin lets you define a Common Event that will be run once the battle is over for every outcome of a battle - defeat, victory, escape/abort. You can also define a common event that runs after every battle, no matter the outcome.
+### Arty_FollowerVehicles.js
+![FollowerVehicles Header](https://raw.githubusercontent.com/artyrambles/rmmv/master/Screenshots/followervehicles.JPG)
+
+This plugin allows you to define vehicle graphics for your followers! Whenever your player uses a vehicle, your followers will now also use their own - or "disappear", or use a default vehicle graphic you set up. 
+
+It's really easy to set up - just define a "blank" image in the plugin parameters, and then give your actors simple notetags.
+
+![FollowerVehicles Setup](https://raw.githubusercontent.com/artyrambles/rmmv/master/Screenshots/followervehicles_setup.JPG)
+
+There's a few settings in the plugin parameters to customize how you want it to work. For example, you can disable "blank" graphics to make the followers without a notetag remain the same, or you can enable "alt" graphics that will allow you to add alternative graphics to your follower vehicle. These alternative graphics will be displayed whenever the player is moving, and the "normal" graphics will be displayed when the player is standing still.
+
+![FollowerVehicles Plugin Params](https://raw.githubusercontent.com/artyrambles/rmmv/master/Screenshots/followervehicles_pluginparams.JPG)
+
+Right now, this plugin only allows you to define one normal and one alt graphic for your followers, so it doesn't take into account different player vehicles. I recommend using it with VictorSaint's *Custom Vehicles* plugin, but it's not required.
 
 ### Arty_RearrangeSkillWindows.js
 A small plugin that moves the help window in the Skills scene BELOW the status. I always found the default arrangement awkward.
 Should hopefully not clash with other plugins, unless they do a similar thing. Example:
+
 ![Example](https://raw.githubusercontent.com/artyrambles/rmmv/master/Screenshots/skillwindowrearrange.png)
+
+### Arty_PostBattleCommonEvent.js
+This plugin lets you define a Common Event that will be run once the battle is over for every outcome of a battle - defeat, victory, escape/abort. You can also define a common event that runs after every battle, no matter the outcome.
