@@ -18,3 +18,8 @@ There is also an optional functionality to show a popup everytime the healing ha
 
 ### Arty_PostBattleCommonEvent.js
 This plugin lets you define a Common Event that will be run once the battle is over for every outcome of a battle - defeat, victory, escape/abort. You can also define a common event that runs after every battle, no matter the outcome.
+
+### Arty_RearrangeSkillWindows.js
+A small plugin that moves the help window in the Skills scene BELOW the status. I always found the default arrangement awkward.
+Should hopefully not clash with other plugins, unless they do a similar thing. Example:
+![Example](https://raw.githubusercontent.com/artyrambles/rmmv/master/skillwindowrearrange.png)
