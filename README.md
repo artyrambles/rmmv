@@ -2,7 +2,12 @@
 Here you can find all my released plugins. They have been tested with v1.6.2 of RPG Maker MV and may not work on older versions.
 
 ## TERMS
-My plugins are free to use for commercial and non-commercial projects, **as long as you give credit**. This "credit" has to include my name (Arty) and the names of the plugins you used.
+My plugins are free to use for commercial and non-commercial projects, **as long as you give credit**. This "credit" has to be my name (Arty), and some sort of indication that it was my plugins that you used. It's not necessary to state which plugins it was.
+
+**Example of crediting me:** "Plugins - Yancry, VictorSinner, SomeOtherCreator, Arty, SumUniqueDude, ..."
+**Another example:** "Heal Over Time, Follower Vehicles, Post Battle Common Events plugins by Arty"
+
+You are not allowed to redistribute my plugins or upload modified versions of them without asking me for permission FIRST.
 
 ### Arty_HealOverTime.js
 *REQUIRES Yanfly's Buffs and States Core plugin!*
