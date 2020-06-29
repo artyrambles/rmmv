@@ -1,9 +1,3 @@
-//=============================================================================
-// Arty's Heal Over Time
-// by Artyrambles
-// Date: 08/06/2019
-// Last Update: 23/06/2020
-//=============================================================================
 
 var Imported = Imported || {};
 Imported.Arty_HealOverTime = true;
@@ -16,8 +10,13 @@ if(!Imported.YEP_BuffsStatesCore) {
 }
 
 /*:
- * @plugindesc v2.2 Heal your actors over time on the map.
- * @author Arty
+ * @title Arty's Heal Over Time
+ * @plugindesc v2.2.1 Heal your actors over time on the map.
+ * @author Artyrambles
+ * @version 2.2.1
+ * @date June 29th, 2020
+ * @filename Arty_HealOverTime.js
+ * @url https://github.com/artyrambles/rmmv
  *
  * @param ----STATES SETTINGS----
  *
@@ -52,10 +51,10 @@ if(!Imported.YEP_BuffsStatesCore) {
  *
  * @help
  * ----------------------------------------------------------------------------
- *   Heal Over Time v2.2 by Arty
+ *   Heal Over Time v2.2.1 by Arty
  *   Free for both commercial and non-commercial use, with credit.
  * ----------------------------------------------------------------------------
- * 	WHAT IT DOES
+ *   WHAT IT DOES
  * ----------------------------------------------------------------------------
  * This plugin will help you heal your actors outside of battle, by setting
  * up one or multiple States in the plugin manager and the database.
@@ -66,17 +65,18 @@ if(!Imported.YEP_BuffsStatesCore) {
  * Note: Once the party member is fully healed, the persistent state will
  * not do anything on its own anymore, even if it isn't removed. I don't
  * really know what to do about that, so suggestions are welcome.
+ *
  * ----------------------------------------------------------------------------
- * 	DEPENDENCIES
+ *   DEPENDENCIES
  * ----------------------------------------------------------------------------
  * This plugin NEEDS Yanfly's Buffs and States Core. It will not work
  * without for the time being. I may add my custom "state applied"
  * function at some point...
- * ----------------------------------------------------------------------------
- * 	HOW TO USE
- * ----------------------------------------------------------------------------
  *
- * 	STATE SETUP
+ * ----------------------------------------------------------------------------
+ *   HOW TO USE
+ * ----------------------------------------------------------------------------
+ *   STATE SETUP
  * This plugin assumes you have one or more "healing" states. Just create a
  * State in your database that does nothing.
  * You can create multiple states like this.
@@ -87,17 +87,33 @@ if(!Imported.YEP_BuffsStatesCore) {
  * <Custom Apply Effect>
  *  Arty.applyState(stateId, user);
  * </Custom Apply Effect>
+ *
  * If you already have a Custom Apply Effect defined, do it like this:
  * <Custom Apply Effect>
  *  your code
  *  your code
  *  Arty.applyState(stateId, user);
  * </Custom Apply Effect>
+ *
  * YOU DON'T NEED TO CHANGE ANYTHING IN THIS SCRIPT CALL! Don't replace the
  * "stateId" or "user" with anything! It's supposed to be used exactly like
  * this or stuff will break.
  *
- *	PLUGIN PARAMETERS
+ *  REMOVING STATES
+ * You can also "prematurely cancel" the healing effect by removing the state,
+ * and adding the following into the state's notebox:
+ * <Custom Remove Effect>
+ *  Arty.removeState(stateId, user);
+ * </Custom Remove Effect>
+ *
+ * If you already have a Custom Remove Effect defined, do it like this:
+ * <Custom Remove Effect>
+ *  your code
+ *  your code
+ *  Arty.removeState(stateId, user);
+ * </Custom Remove Effect>
+ *
+ *  PLUGIN PARAMETERS
  * If you want to use popups, you have to install this:
  *   https://github.com/Trivel/RMMV/blob/master/MrTS_PopUp.js
  * Then set the "Popups" plugin parameter to ON (true).
@@ -112,10 +128,6 @@ if(!Imported.YEP_BuffsStatesCore) {
  *
  * That's all you need to do. The plugin will do the rest for you.
  *
- * ----------------------------------------------------------------------------
- *   PLUGIN COMMAND
- * ----------------------------------------------------------------------------
- * This plugin does not have any plugin commands.
  * ----------------------------------------------------------------------------
  *
  * If something doesn't work, please let me know via
@@ -188,6 +200,24 @@ if(!Imported.YEP_BuffsStatesCore) {
 		{
 			var newState = [stateId, Graphics.frameCount];
 			actor.healingStates.push(newState);
+		}
+	}
+
+	// new function to "cancel" the healing state pre-maturely
+	Arty.removeState = function(stateId, actor) {
+		var indexToRemove = null;
+		for (var i = 0; i < actor.healingStates.length; i++)
+		{
+			if (actor.healingStates[i][0] == stateId)
+			{
+				indexToRemove = i;
+				break;
+			}
+		}
+		// remove it from the array
+		if (indexToRemove != null)
+		{
+			actor.healingStates.splice(indexToRemove,1);
 		}
 	}
 
