@@ -11,10 +11,10 @@ if(!Imported.YEP_BuffsStatesCore) {
 
 /*:
  * @title Arty's Heal Over Time
- * @plugindesc v2.2.1 Heal your actors over time on the map.
+ * @plugindesc v2.2.2 Heal your actors over time on the map.
  * @author Artyrambles
- * @version 2.2.1
- * @date June 29th, 2020
+ * @version 2.2.2
+ * @date July 1st, 2020
  * @filename Arty_HealOverTime.js
  * @url https://github.com/artyrambles/rmmv
  *
@@ -51,7 +51,7 @@ if(!Imported.YEP_BuffsStatesCore) {
  *
  * @help
  * ----------------------------------------------------------------------------
- *   Heal Over Time v2.2.1 by Arty
+ *   Heal Over Time v2.2.2 by Arty
  *   Free for both commercial and non-commercial use, with credit.
  * ----------------------------------------------------------------------------
  *   WHAT IT DOES
@@ -129,6 +129,16 @@ if(!Imported.YEP_BuffsStatesCore) {
  * That's all you need to do. The plugin will do the rest for you.
  *
  * ----------------------------------------------------------------------------
+ *   CHANGELOG
+ * ----------------------------------------------------------------------------
+ * 2020/07/01: fixed bug with auto-removal of states; added changelog
+ * 2020/06/22: added functionality to prematurely remove healing effect
+ * 2020/06/23: completely reworked code and fixed critical bugs
+ * 2019/06/22: added option to heal MP instead of HP, small code improvements
+ * 2019/06/13: completely rewrote the code based on feedback
+ * 2019/06/10: added the option to heal a percentage of the actor's max HP
+ *
+ * ----------------------------------------------------------------------------
  *
  * If something doesn't work, please let me know via
  * arty.rambles (at) gmail.com
@@ -178,7 +188,7 @@ if(!Imported.YEP_BuffsStatesCore) {
 			databaseState.healing = state["Healing"];
 			databaseState.hpmp = state["Type"];
 			databaseState.triggerInterval = state["Interval"];
-			databaseState.remove = state["Persistent"];
+			if (state["Persistent"] == "false") databaseState.remove = false;
 			Arty.HOT.definedStates.push(state["State"]);
 		}
 	}
@@ -238,7 +248,7 @@ Scene_Map.prototype.update = function() {
 			{
 				if (m.healingStates[i][0] == currentId && ((currentFrameCount - m.healingStates[i][1]) > triggerInterval))
 				{
-					remove = $dataStates[currentId].remove;
+					remove = !$dataStates[currentId].remove;
 					healing = $dataStates[currentId].healing;
 					percentage = Arty.HOT.checkPercentage(healing);
 
