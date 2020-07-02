@@ -187,8 +187,7 @@ if(!Imported.YEP_BuffsStatesCore) {
 			state = JSON.parse(statesParsed[i]);
 			databaseState = $dataStates[state["State"]];
 			databaseState.healing = state["Healing"];
-			// TESTING... changed this line
-		  databaseState.hpmp = state["Type"];
+		        databaseState.hpmp = state["Type"];
 			databaseState.triggerInterval = state["Interval"];
 			if (state["Persistent"] == "false") databaseState.remove = false;
 			Arty.HOT.definedStates.push(state["State"]);
