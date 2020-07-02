@@ -11,10 +11,10 @@ if(!Imported.YEP_BuffsStatesCore) {
 
 /*:
  * @title Arty's Heal Over Time
- * @plugindesc v2.2.2 Heal your actors over time on the map.
+ * @plugindesc v2.2.3 Heal your actors over time on the map.
  * @author Artyrambles
- * @version 2.2.2
- * @date July 1st, 2020
+ * @version 2.2.3
+ * @date July 2nd, 2020
  * @filename Arty_HealOverTime.js
  * @url https://github.com/artyrambles/rmmv
  *
@@ -51,7 +51,7 @@ if(!Imported.YEP_BuffsStatesCore) {
  *
  * @help
  * ----------------------------------------------------------------------------
- *   Heal Over Time v2.2.2 by Arty
+ *   Heal Over Time v2.2.3 by Arty
  *   Free for both commercial and non-commercial use, with credit.
  * ----------------------------------------------------------------------------
  *   WHAT IT DOES
@@ -131,6 +131,7 @@ if(!Imported.YEP_BuffsStatesCore) {
  * ----------------------------------------------------------------------------
  *   CHANGELOG
  * ----------------------------------------------------------------------------
+ * 2020/07/02: fixed conflict that led to states not getting removed properly
  * 2020/07/01: fixed bug with auto-removal of states; added changelog
  * 2020/06/22: added functionality to prematurely remove healing effect
  * 2020/06/23: completely reworked code and fixed critical bugs
@@ -168,7 +169,7 @@ if(!Imported.YEP_BuffsStatesCore) {
 			$dataStates[i].healing = null;
 			$dataStates[i].triggerInterval = null;
 			$dataStates[i].remove = true;
-			$dataStates[i].hpmp = true;
+			$dataStates[i].hpmp = "HP";
 		}
 	}
 
@@ -186,7 +187,8 @@ if(!Imported.YEP_BuffsStatesCore) {
 			state = JSON.parse(statesParsed[i]);
 			databaseState = $dataStates[state["State"]];
 			databaseState.healing = state["Healing"];
-			databaseState.hpmp = state["Type"];
+			// TESTING... changed this line
+		  databaseState.hpmp = state["Type"];
 			databaseState.triggerInterval = state["Interval"];
 			if (state["Persistent"] == "false") databaseState.remove = false;
 			Arty.HOT.definedStates.push(state["State"]);
@@ -224,17 +226,19 @@ if(!Imported.YEP_BuffsStatesCore) {
 				break;
 			}
 		}
-		// remove it from the array
+		// remove it from the array... but later
 		if (indexToRemove != null)
 		{
-			actor.healingStates.splice(indexToRemove,1);
+			actor.healingStates[indexToRemove][0] = -1;
 		}
+
 	}
 
 // now hijack the map updating
 
 Arty.HOT.Scene_Map_update = Scene_Map.prototype.update;
 Scene_Map.prototype.update = function() {
+	statesToRemove = [];
 	for (i = 0; i < Arty.HOT.definedStates.length; i++)
 	{
 		currentId = Arty.HOT.definedStates[i];
@@ -243,9 +247,17 @@ Scene_Map.prototype.update = function() {
 		// do this for every party member
 		$gameParty.members().forEach(function(m){
 			if (m == undefined) return;
+			// 2.2.3 - added this line!
+			statesToRemove.length = 0;
 			// check every registered healing state!
 			for (var i = 0; i < m.healingStates.length; i++)
 			{
+				// 2.2.3 - added this clause to remove "junk" states
+				if (m.healingStates[i][0] == -1)
+				{
+					statesToRemove.push(i);
+					continue;
+				}
 				if (m.healingStates[i][0] == currentId && ((currentFrameCount - m.healingStates[i][1]) > triggerInterval))
 				{
 					remove = !$dataStates[currentId].remove;
@@ -278,9 +290,10 @@ Scene_Map.prototype.update = function() {
 					{
 						if (remove)
 						{
+							// remove it from the array... but later!!
+							// 2.2.3 - added this line
+							statesToRemove.push(i);
 							m.removeState(stateId);
-							// remove it from the array too
-							m.healingStates.splice(i,1);
 						} else {
 							m.healingStates[i][1] = null;
 						}
@@ -325,6 +338,16 @@ Scene_Map.prototype.update = function() {
 
 					}
 				}
+			}
+			// 2.2.3 - Added this as a new/proper way to remove the states from the healing states array
+			if (statesToRemove.length != 0)
+			{
+				for (var x = 0; x < statesToRemove.length; x++)
+				{
+					m.healingStates[statesToRemove[x]] = -1;
+				}
+				filteredStates = m.healingStates.filter(state => state != -1);
+				m.healingStates = filteredStates;
 			}
 		});
 	}
