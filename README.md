@@ -45,3 +45,13 @@ Should hopefully not clash with other plugins, unless they do a similar thing. E
 
 ### Arty_PostBattleCommonEvent.js
 This plugin lets you define a Common Event that will be run once the battle is over for every outcome of a battle - defeat, victory, escape/abort. You can also define a common event that runs after every battle, no matter the outcome.
+
+### Arty_PartyMemberCE.js
+This plugin lets you define a common event for your actors. When the actor is added to the party (or removed), a common event is run every time. You could use this to make the party gain or lose items whenever a certain actor joins or leaves.
+
+There is also an option to run Javascript when a certain member is added or removed. (This is experimental. Use with care, and only if you know what you're doing.
+
+There is also an option for running a common event anytime ANY actor is added or removed.
+
+**CAUTION!**
+Because of the way RPGMV handles Common Events, it's NOT possible to "queue" multiple Common Events. If you want your events to execute after the current event is done, you will  need a plugin that fixes this behavior. For example, you could use HIME's Common Event Queue plugin.
